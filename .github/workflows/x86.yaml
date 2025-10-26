@@ -1,0 +1,35 @@
+name: Download x86_64 RPM Packages for NeoKylin V7
+
+# 允许我们手动点击按钮来触发这个任务
+on:
+  workflow_dispatch:
+
+jobs:
+  build-x86-packages:
+    # 使用 GitHub 官方提供的、配置完整的 Ubuntu 最新环境
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步骤 1: 输出提示信息
+      - name: Starting package download for x86_64
+        run: echo "Preparing to download iperf3 and redis for CentOS 7 (x86_64)..."
+
+      # 步骤 2: 创建用于存放包的目录
+      - name: Create package directory
+        run: mkdir neokylin_x86_packages
+
+      # 步骤 3: 运行 Docker 命令下载软件包
+      # 注意：我们现在使用 centos:7 镜像，并且不再需要 --platform 参数
+      - name: Run Docker to download packages using CentOS 7
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/neokylin_x86_packages:/packages \
+            centos:7 \
+            bash -c "yum install -y yum-utils && cd /packages && yumdownloader --resolve iperf3 redis"
+
+      # 步骤 4: 将下载好的文件夹打包上传
+      - name: Upload packages as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: neokylin-x86-packages-rpm
+          path: neokylin_x86_packages/
