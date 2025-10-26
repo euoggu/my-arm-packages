@@ -1,0 +1,31 @@
+name: Download Compile Tools for NeoKylin V7 (x86_64)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-compile-tools:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create package directory
+        run: mkdir compile_tools_x86
+
+      - name: Run Docker to download compile tools
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/compile_tools_x86:/packages \
+            centos:7 \
+            bash -c " \
+              sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo && \
+              sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo && \
+              yum install -y yum-utils && \
+              cd /packages && \
+              yumdownloader --resolve gcc make tcl \
+            "
+
+      - name: Upload compile tools as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: compile-tools-x86-rpm
+          path: compile_tools_x86/
