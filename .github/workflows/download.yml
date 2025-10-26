@@ -10,15 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 步骤 1: 输出提示信息
-      - name: Starting package download
-        run: echo "Preparing to download iperf3 and redis for aarch64..."
+      # ====================================================================
+      # 关键的新增步骤：安装并配置 QEMU 模拟器
+      # 这样 runner 才能运行非 x86 架构的 Docker 镜像
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      # ====================================================================
 
-      # 步骤 2: 创建用于存放包的目录
+      # 步骤 2: 输出提示信息
+      - name: Starting package download
+        run: echo "QEMU is set up. Preparing to download iperf3 and redis for aarch64..."
+
+      # 步骤 3: 创建用于存放包的目录
       - name: Create package directory
         run: mkdir kylin_arm_packages
 
-      # 步骤 3: 运行 Docker 命令下载软件包 (核心步骤)
+      # 步骤 4: 运行 Docker 命令下载软件包 (现在可以正常工作了)
       - name: Run Docker to download packages
         run: |
           docker run --rm --platform linux/arm64 \
@@ -26,7 +33,7 @@ jobs:
             rockylinux:8 \
             bash -c "dnf install -y dnf-utils && cd /packages && yumdownloader --resolve --archlist=aarch64 iperf3 redis"
 
-      # 步骤 4: 将下载好的文件夹打包上传
+      # 步骤 5: 将下载好的文件夹打包上传
       - name: Upload packages as an artifact
         uses: actions/upload-artifact@v4
         with:
