@@ -1,1 +1,38 @@
 
+name: Download Compile Tools for Kylin SP3 (ARM64)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-arm-compile-tools:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步骤 1: 安装 QEMU 模拟器，以支持运行 ARM 容器
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 步骤 2: 创建用于存放包的目录
+      - name: Create package directory
+        run: mkdir compile_tools_arm64
+
+      # 步骤 3: 运行 Docker 命令下载编译工具
+      # 使用 rockylinux:8 镜像，并指定平台为 linux/arm64
+      - name: Run Docker to download compile tools
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v ${{ github.workspace }}/compile_tools_arm64:/packages \
+            rockylinux:8 \
+            bash -c " \
+              dnf install -y dnf-utils && \
+              cd /packages && \
+              yumdownloader --resolve --archlist=aarch64 gcc make tcl \
+            "
+
+      # 步骤 4: 将下载好的文件夹打包上传
+      - name: Upload compile tools as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: compile-tools-arm64-rpm
+          path: compile_tools_arm64/
