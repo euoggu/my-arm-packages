@@ -1,6 +1,14 @@
+# ====================================================================
+# 文件名: .github/workflows/arm-compile-tools.yaml
+# ====================================================================
 
 name: Download Compile Tools for Kylin SP3 (ARM64)
 
+# --------------------------------------------------------------------
+# 关键部分：'on' 触发器
+# 这一部分告诉 GitHub 这个工作流可以通过手动点击按钮来运行。
+# 确保 'on:' 关键字在文件最左边，没有任何缩进。
+# --------------------------------------------------------------------
 on:
   workflow_dispatch:
 
@@ -18,7 +26,6 @@ jobs:
         run: mkdir compile_tools_arm64
 
       # 步骤 3: 运行 Docker 命令下载编译工具
-      # 使用 rockylinux:8 镜像，并指定平台为 linux/arm64
       - name: Run Docker to download compile tools
         run: |
           docker run --rm --platform linux/arm64 \
